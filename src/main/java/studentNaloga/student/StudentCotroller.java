@@ -38,12 +38,12 @@ public class StudentCotroller {
     }
 
     @PutMapping("/students/{studentId}/{classId}")
-    public List<Student> enrollStudentToClass(@RequestBody Student student, @PathVariable Integer studentId, @PathVariable Integer classId) {
+    public String enrollStudentToClass(Student student, @PathVariable Integer studentId, @PathVariable Integer classId) {
         return studentService.enrollStudentToClass(studentId, classId);
     }
 
     @DeleteMapping("/students/{studentId}/{classId}")
-    public List<Student> deleteEnrolledStudentToClass(@RequestBody Student student, @PathVariable Integer studentId, @PathVariable Integer classId) {
+    public String deleteEnrolledStudentToClass(Student student, @PathVariable Integer studentId, @PathVariable Integer classId) {
         return studentService.deleteEnrolledStudentToClass(studentId, classId);
     }
 }

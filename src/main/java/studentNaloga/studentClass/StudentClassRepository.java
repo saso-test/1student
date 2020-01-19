@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface StudentClassRepository extends CrudRepository<StudentClass, Integer> {
 
-    @Query (value = "SELECT class_id, class_name, lecturer_name, student_id, time, semester FROM Student_class WHERE class_name = :studentClassName", nativeQuery = true)
+    @Query (value = "SELECT class_id, class_name, lecturer_name, time, semester FROM Student_class WHERE class_name = :studentClassName", nativeQuery = true)
 
     List<StudentClass> findStudentClassesByName(String studentClassName);
 

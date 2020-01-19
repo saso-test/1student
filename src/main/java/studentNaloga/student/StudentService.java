@@ -1,5 +1,7 @@
 package studentNaloga.student;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import studentNaloga.studentClass.StudentClass;
 import studentNaloga.studentClass.StudentClassRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,10 +11,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.security.Principal;
+import java.util.*;
 
 @Service
 public class StudentService implements UserDetailsService {
@@ -35,18 +35,42 @@ public class StudentService implements UserDetailsService {
         return student.get();
     }
 
-    public List<Student> enrollStudentToClass(Integer studentId, Integer classId) {
-        studentRepository.findById(studentId).map(student -> {student.getEnrolledClassID().add(studentClassRepository.findById(classId).get());
-                    return studentRepository.save(student);
-                });
-        return null;
-    }
+    public String enrollStudentToClass(Integer studentId, Integer classId) {
 
-    public List<Student> deleteEnrolledStudentToClass(Integer studentId, Integer classId) {
-        studentRepository.findById(studentId).map(student -> {student.getEnrolledClassID().remove(studentClassRepository.findById(classId).get());
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        Student tempStudent = studentRepository.findById(studentId).get();
+        if(tempStudent.getUserName() != auth.getName()) return "You are not authorized for enroll other students.";
+
+        Set<StudentClass> std = studentRepository.findById(studentId).get().getEnrolledClassID();;
+        for (StudentClass s : std) {
+            if (s.getClassId() == (classId)) {
+              return studentRepository.findById(studentId).get().getStudentName() +" is allready enrolled to a class: " + studentClassRepository.findById(classId).get().getClassName();
+            }
+        }
+
+        studentRepository.findById(studentId).map(student -> {student.getEnrolledClassID().add(studentClassRepository.findById(classId).get());
             return studentRepository.save(student);
         });
-        return null;
+        return studentRepository.findById(studentId).get().getStudentName() +" enrolled to class: " + studentClassRepository.findById(classId).get().getClassName();
+    }
+
+    public String deleteEnrolledStudentToClass(Integer studentId, Integer classId) {
+        Boolean studentIsPresent = studentRepository.findById(studentId).isPresent();
+        Boolean classIsPresent = studentClassRepository.findById(classId).isPresent();
+
+        if (!studentIsPresent) return "Wrong student or not exists.";
+        if (!classIsPresent) return "Wrong studentClass or not exists.";
+
+        if (studentRepository.findById(studentId).get().getEnrolledClassID().contains(classId) ) {
+            studentRepository.findById(studentId).map(student -> {student.getEnrolledClassID().remove(studentClassRepository.findById(classId).get());
+                return studentRepository.save(student);
+            });
+            return studentRepository.findById(studentId).get().getStudentName() +" canceled class: " + studentClassRepository.findById(classId).get().getClassName();
+        } else {
+            return "You are not enrolled to this class.";
+        }
+
     }
 
 
